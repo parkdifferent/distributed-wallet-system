@@ -1,15 +1,16 @@
 syntax = "proto3";
 
-package com.wallet.command.event.proto;
+package com.wallet.event;
 
 import "google/protobuf/timestamp.proto";
 
 option java_multiple_files = true;
+option java_package = "com.wallet.event";
 
 // Common event message wrapper
 message EventMessage {
     string event_id = 1;
-    string account_id = 2;  // Renamed from aggregate_id
+    string account_id = 2;
     string operator_id = 3;
     google.protobuf.Timestamp timestamp = 4;
     
@@ -36,6 +37,8 @@ message AccountCreatedEventData {
     string initial_balance = 2;  // Using string for BigDecimal
     string min_balance = 3;
     string max_balance = 4;
+    string currency = 5;
+    string owner_id = 6;
 }
 
 // Balance Changed Event

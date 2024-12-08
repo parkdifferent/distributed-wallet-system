@@ -67,6 +67,19 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Protobuf -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -108,14 +121,8 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>compile-protobuf</id>
                         <goals>
                             <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>compile-grpc</id>
-                        <goals>
                             <goal>compile-custom</goal>
                         </goals>
                     </execution>

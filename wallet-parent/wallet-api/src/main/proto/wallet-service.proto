@@ -1,24 +1,9 @@
 syntax = "proto3";
 
+package com.wallet.service;
+
 option java_multiple_files = true;
-option java_package = "com.wallet.api.grpc";
-option java_outer_classname = "WalletProto";
-
-package wallet;
-
-// Error codes for wallet operations
-enum ErrorCode {
-    UNKNOWN_ERROR = 0;
-    INVALID_REQUEST = 1;
-    ACCOUNT_NOT_FOUND = 2;
-    INSUFFICIENT_BALANCE = 3;
-    VERSION_MISMATCH = 4;
-    ACCOUNT_FROZEN = 5;
-    INVALID_AMOUNT = 6;
-    ASSET_TYPE_MISMATCH = 7;
-    DUPLICATE_REQUEST = 8;
-    BALANCE_LIMIT_EXCEEDED = 9;
-}
+option java_package = "com.wallet.service";
 
 // Account management service
 service WalletCommandService {
@@ -36,6 +21,20 @@ service WalletCommandService {
     
     // Transfer between accounts
     rpc Transfer (TransferRequest) returns (TransferResponse) {}
+}
+
+// Error codes for wallet operations
+enum ErrorCode {
+    UNKNOWN_ERROR = 0;
+    INVALID_REQUEST = 1;
+    ACCOUNT_NOT_FOUND = 2;
+    INSUFFICIENT_BALANCE = 3;
+    VERSION_MISMATCH = 4;
+    ACCOUNT_FROZEN = 5;
+    INVALID_AMOUNT = 6;
+    ASSET_TYPE_MISMATCH = 7;
+    DUPLICATE_REQUEST = 8;
+    BALANCE_LIMIT_EXCEEDED = 9;
 }
 
 // Request/Response messages

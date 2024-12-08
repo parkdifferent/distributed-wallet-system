@@ -2,15 +2,15 @@ package com.wallet.command.infrastructure.serialization;
 
 import com.google.protobuf.Timestamp;
 import com.wallet.command.event.*;
-import com.wallet.command.event.proto.*;
 import com.wallet.enums.AssetType;
+import com.wallet.event.*;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Base64;
 
 @Component
 public class ProtobufEventSerializer implements EventSerializer {
