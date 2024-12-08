@@ -19,6 +19,7 @@
     <modules>
         <module>wallet-api</module>
         <module>wallet-command</module>
+        <module>wallet-query</module>
     </modules>
 
     <properties>

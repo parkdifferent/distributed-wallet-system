@@ -1,18 +1,19 @@
-package com.wallet.command.entity;
+package com.wallet.query.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.wallet.enums.AccountStatus;
 import com.wallet.enums.AssetType;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @TableName("t_account")
 public class AccountEntity {
+    @TableId(value = "id", type = IdType.INPUT)
+    private String accountId;
     
-    @TableId(type = IdType.INPUT)
-    private String id;
+    private String ownerId;
     
     private AssetType assetType;
     
@@ -26,13 +27,15 @@ public class AccountEntity {
     
     private String currency;
     
-    private String ownerId;
-    
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private Instant createdAt;
     
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private Instant updatedAt;
+    
+    private String createdBy;
+    
+    private String updatedBy;
     
     @Version
     private Integer version;

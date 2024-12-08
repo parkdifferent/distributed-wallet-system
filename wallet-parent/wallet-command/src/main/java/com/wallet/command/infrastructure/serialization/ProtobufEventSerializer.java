@@ -1,38 +1,41 @@
 package com.wallet.command.infrastructure.serialization;
 
-import com.google.protobuf.Timestamp;
 import com.wallet.command.event.*;
+import com.wallet.command.event.proto.*;
 import com.wallet.enums.AssetType;
-import com.wallet.event.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class ProtobufEventSerializer implements EventSerializer {
 
     @Override
     public String serialize(BaseEvent event) {
-        return Base64.getEncoder().encodeToString(createEventMessage(event).toByteArray());
+        // Implementation for serializing a single event
+        return serializeEvent(event);
     }
 
     @Override
     public String serializeList(List<BaseEvent> events) {
-        EventList.Builder builder = EventList.newBuilder();
-        events.forEach(event -> builder.addEvents(createEventMessage(event)));
-        return Base64.getEncoder().encodeToString(builder.build().toByteArray());
+        // Implementation for serializing a list of events
+        return events.stream()
+                .map(this::serializeEvent)
+                .collect(Collectors.joining(",", "[", "]"));
     }
 
     @Override
     public BaseEvent deserialize(String data, String eventType) throws EventDeserializationException {
         try {
-            byte[] bytes = Base64.getDecoder().decode(data);
-            EventMessage message = EventMessage.parseFrom(bytes);
-            return convertToEvent(message);
+            return deserializeEvent(data, eventType);
         } catch (Exception e) {
             throw new EventDeserializationException("Failed to deserialize event", e);
         }
@@ -41,158 +44,241 @@ public class ProtobufEventSerializer implements EventSerializer {
     @Override
     public List<BaseEvent> deserializeList(String data, List<String> eventTypes) throws EventDeserializationException {
         try {
-            byte[] bytes = Base64.getDecoder().decode(data);
-            EventList eventList = EventList.parseFrom(bytes);
-            return eventList.getEventsList().stream()
-                    .map(this::convertToEvent)
-                    .collect(Collectors.toList());
+            List<BaseEvent> events = new ArrayList<>();
+            String[] eventDataArray = data.substring(1, data.length() - 1).split(",");
+            
+            if (eventDataArray.length != eventTypes.size()) {
+                throw new EventDeserializationException("Number of events does not match number of event types");
+            }
+            
+            for (int i = 0; i < eventDataArray.length; i++) {
+                events.add(deserializeEvent(eventDataArray[i], eventTypes.get(i)));
+            }
+            
+            return events;
         } catch (Exception e) {
             throw new EventDeserializationException("Failed to deserialize event list", e);
         }
     }
 
-    private EventMessage createEventMessage(BaseEvent event) {
-        EventMessage.Builder builder = EventMessage.newBuilder()
+    private String serializeEvent(BaseEvent event) {
+        // Implementation for specific event types
+        if (event instanceof AccountCreatedEvent) {
+            return serializeAccountCreatedEvent((AccountCreatedEvent) event);
+        } else if (event instanceof BalanceChangedEvent) {
+            return serializeBalanceChangedEvent((BalanceChangedEvent) event);
+        } else if (event instanceof AccountFrozenEvent) {
+            return serializeAccountFrozenEvent((AccountFrozenEvent) event);
+        } else if (event instanceof AccountUnfrozenEvent) {
+            return serializeAccountUnfrozenEvent((AccountUnfrozenEvent) event);
+        } else if (event instanceof AccountClosedEvent) {
+            return serializeAccountClosedEvent((AccountClosedEvent) event);
+        }
+        throw new IllegalArgumentException("Unsupported event type: " + event.getClass().getName());
+    }
+
+    private BaseEvent deserializeEvent(String data, String eventType) throws EventDeserializationException {
+        try {
+            switch (eventType) {
+                case "com.wallet.command.event.AccountCreatedEvent":
+                    return deserializeAccountCreatedEvent(data);
+                case "com.wallet.command.event.BalanceChangedEvent":
+                    return deserializeBalanceChangedEvent(data);
+                case "com.wallet.command.event.AccountFrozenEvent":
+                    return deserializeAccountFrozenEvent(data);
+                case "com.wallet.command.event.AccountUnfrozenEvent":
+                    return deserializeAccountUnfrozenEvent(data);
+                case "com.wallet.command.event.AccountClosedEvent":
+                    return deserializeAccountClosedEvent(data);
+                default:
+                    throw new EventDeserializationException("Unsupported event type: " + eventType);
+            }
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize event", e);
+        }
+    }
+
+    // Implement specific serialization methods for each event type
+    private String serializeAccountCreatedEvent(AccountCreatedEvent event) {
+        // Implementation
+        return Base64.getEncoder().encodeToString(buildAccountCreatedEventData(event).build().toByteArray());
+    }
+
+    private String serializeBalanceChangedEvent(BalanceChangedEvent event) {
+        // Implementation
+        return Base64.getEncoder().encodeToString(buildBalanceChangedEventData(event).build().toByteArray());
+    }
+
+    private String serializeAccountFrozenEvent(AccountFrozenEvent event) {
+        // Implementation
+        return Base64.getEncoder().encodeToString(buildAccountFrozenEventData(event).build().toByteArray());
+    }
+
+    private String serializeAccountUnfrozenEvent(AccountUnfrozenEvent event) {
+        // Implementation
+        return Base64.getEncoder().encodeToString(buildAccountUnfrozenEventData(event).build().toByteArray());
+    }
+
+    private String serializeAccountClosedEvent(AccountClosedEvent event) {
+        // Implementation
+        return Base64.getEncoder().encodeToString(buildAccountClosedEventData(event).build().toByteArray());
+    }
+
+    // Implement specific deserialization methods for each event type
+    private AccountCreatedEvent deserializeAccountCreatedEvent(String data) throws EventDeserializationException {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            AccountCreatedEventData message = AccountCreatedEventData.parseFrom(bytes);
+            return buildAccountCreatedEvent(message);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize AccountCreatedEvent", e);
+        }
+    }
+
+    private BalanceChangedEvent deserializeBalanceChangedEvent(String data) throws EventDeserializationException {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            BalanceChangedEventData message = BalanceChangedEventData.parseFrom(bytes);
+            return buildBalanceChangedEvent(message);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize BalanceChangedEvent", e);
+        }
+    }
+
+    private AccountFrozenEvent deserializeAccountFrozenEvent(String data) throws EventDeserializationException {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            AccountFrozenEventData message = AccountFrozenEventData.parseFrom(bytes);
+            return buildAccountFrozenEvent(message);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize AccountFrozenEvent", e);
+        }
+    }
+
+    private AccountUnfrozenEvent deserializeAccountUnfrozenEvent(String data) throws EventDeserializationException {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            AccountUnfrozenEventData message = AccountUnfrozenEventData.parseFrom(bytes);
+            return buildAccountUnfrozenEvent(message);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize AccountUnfrozenEvent", e);
+        }
+    }
+
+    private AccountClosedEvent deserializeAccountClosedEvent(String data) throws EventDeserializationException {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(data);
+            AccountClosedEventData message = AccountClosedEventData.parseFrom(bytes);
+            return buildAccountClosedEvent(message);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Failed to deserialize AccountClosedEvent", e);
+        }
+    }
+
+    private AccountCreatedEventData.Builder buildAccountCreatedEventData(AccountCreatedEvent event) {
+        return AccountCreatedEventData.newBuilder()
                 .setEventId(event.getEventId())
                 .setAccountId(event.getAccountId())
                 .setOperatorId(event.getOperatorId())
-                .setTimestamp(instantToTimestamp(event.getTimestamp()));
-
-        if (event instanceof AccountCreatedEvent) {
-            builder.setAccountCreated(createAccountCreatedData((AccountCreatedEvent) event));
-        } else if (event instanceof BalanceChangedEvent) {
-            builder.setBalanceChanged(createBalanceChangedData((BalanceChangedEvent) event));
-        } else if (event instanceof AccountFrozenEvent) {
-            builder.setAccountFrozen(createAccountFrozenData((AccountFrozenEvent) event));
-        } else if (event instanceof AccountUnfrozenEvent) {
-            builder.setAccountUnfrozen(createAccountUnfrozenData((AccountUnfrozenEvent) event));
-        } else if (event instanceof AccountClosedEvent) {
-            builder.setAccountClosed(createAccountClosedData((AccountClosedEvent) event));
-        }
-
-        return builder.build();
-    }
-
-    private AccountCreatedEventData createAccountCreatedData(AccountCreatedEvent event) {
-        return AccountCreatedEventData.newBuilder()
+                .setTimestamp(event.getTimestamp().toString())
                 .setInitialBalance(event.getInitialBalance().toString())
                 .setAssetType(event.getAssetType().name())
                 .setMinBalance(event.getMinBalance().toString())
-                .setMaxBalance(event.getMaxBalance().toString())
-                .build();
+                .setMaxBalance(event.getMaxBalance().toString());
     }
 
-    private BalanceChangedEventData createBalanceChangedData(BalanceChangedEvent event) {
+    private BalanceChangedEventData.Builder buildBalanceChangedEventData(BalanceChangedEvent event) {
         return BalanceChangedEventData.newBuilder()
+                .setEventId(event.getEventId())
+                .setAccountId(event.getAccountId())
+                .setOperatorId(event.getOperatorId())
+                .setTimestamp(event.getTimestamp().toString())
                 .setAmount(event.getAmount().toString())
                 .setTransactionId(event.getTransactionId())
-                .setTargetAccountId(event.getTargetAccountId())
-                .build();
+                .setTargetAccountId(event.getTargetAccountId());
     }
 
-    private AccountFrozenEventData createAccountFrozenData(AccountFrozenEvent event) {
+    private AccountFrozenEventData.Builder buildAccountFrozenEventData(AccountFrozenEvent event) {
         return AccountFrozenEventData.newBuilder()
-                .setReason(event.getReason())
-                .build();
+                .setEventId(event.getEventId())
+                .setAccountId(event.getAccountId())
+                .setOperatorId(event.getOperatorId())
+                .setTimestamp(event.getTimestamp().toString())
+                .setReason(event.getReason());
     }
 
-    private AccountUnfrozenEventData createAccountUnfrozenData(AccountUnfrozenEvent event) {
+    private AccountUnfrozenEventData.Builder buildAccountUnfrozenEventData(AccountUnfrozenEvent event) {
         return AccountUnfrozenEventData.newBuilder()
-                .setReason(event.getReason())
-                .build();
+                .setEventId(event.getEventId())
+                .setAccountId(event.getAccountId())
+                .setOperatorId(event.getOperatorId())
+                .setTimestamp(event.getTimestamp().toString())
+                .setReason(event.getReason());
     }
 
-    private AccountClosedEventData createAccountClosedData(AccountClosedEvent event) {
+    private AccountClosedEventData.Builder buildAccountClosedEventData(AccountClosedEvent event) {
         return AccountClosedEventData.newBuilder()
+                .setEventId(event.getEventId())
+                .setAccountId(event.getAccountId())
+                .setOperatorId(event.getOperatorId())
+                .setTimestamp(event.getTimestamp().toString())
                 .setReason(event.getReason())
-                .build();
+                .setFinalBalance(event.getFinalBalance().toString());
     }
 
-    private BaseEvent convertToEvent(EventMessage message) {
-        switch (message.getEventDataCase()) {
-            case ACCOUNT_CREATED:
-                return createAccountCreatedEvent(message);
-            case BALANCE_CHANGED:
-                return createBalanceChangedEvent(message);
-            case ACCOUNT_FROZEN:
-                return createAccountFrozenEvent(message);
-            case ACCOUNT_UNFROZEN:
-                return createAccountUnfrozenEvent(message);
-            case ACCOUNT_CLOSED:
-                return createAccountClosedEvent(message);
-            default:
-                throw new IllegalArgumentException("Unknown event type: " + message.getEventDataCase());
-        }
-    }
-
-    private AccountCreatedEvent createAccountCreatedEvent(EventMessage message) {
-        AccountCreatedEventData data = message.getAccountCreated();
+    private AccountCreatedEvent buildAccountCreatedEvent(AccountCreatedEventData eventData) {
         return AccountCreatedEvent.builder()
-                .eventId(message.getEventId())
-                .accountId(message.getAccountId())
-                .operatorId(message.getOperatorId())
-                .timestamp(timestampToInstant(message.getTimestamp()))
-                .initialBalance(new BigDecimal(data.getInitialBalance()))
-                .assetType(AssetType.valueOf(data.getAssetType()))
-                .minBalance(new BigDecimal(data.getMinBalance()))
-                .maxBalance(new BigDecimal(data.getMaxBalance()))
+                .eventId(eventData.getEventId())
+                .accountId(eventData.getAccountId())
+                .operatorId(eventData.getOperatorId())
+                .timestamp(Instant.parse(eventData.getTimestamp()))
+                .initialBalance(new BigDecimal(eventData.getInitialBalance()))
+                .assetType(AssetType.valueOf(eventData.getAssetType()))
+                .minBalance(new BigDecimal(eventData.getMinBalance()))
+                .maxBalance(new BigDecimal(eventData.getMaxBalance()))
                 .build();
     }
 
-    private BalanceChangedEvent createBalanceChangedEvent(EventMessage message) {
-        BalanceChangedEventData data = message.getBalanceChanged();
+    private BalanceChangedEvent buildBalanceChangedEvent(BalanceChangedEventData eventData) {
         return BalanceChangedEvent.builder()
-                .eventId(message.getEventId())
-                .accountId(message.getAccountId())
-                .operatorId(message.getOperatorId())
-                .timestamp(timestampToInstant(message.getTimestamp()))
-                .amount(new BigDecimal(data.getAmount()))
-                .transactionId(data.getTransactionId())
-                .targetAccountId(data.getTargetAccountId())
+                .eventId(eventData.getEventId())
+                .accountId(eventData.getAccountId())
+                .operatorId(eventData.getOperatorId())
+                .timestamp(Instant.parse(eventData.getTimestamp()))
+                .amount(new BigDecimal(eventData.getAmount()))
+                .transactionId(eventData.getTransactionId())
+                .targetAccountId(eventData.getTargetAccountId())
                 .build();
     }
 
-    private AccountFrozenEvent createAccountFrozenEvent(EventMessage message) {
-        AccountFrozenEventData data = message.getAccountFrozen();
+    private AccountFrozenEvent buildAccountFrozenEvent(AccountFrozenEventData eventData) {
         return AccountFrozenEvent.builder()
-                .eventId(message.getEventId())
-                .accountId(message.getAccountId())
-                .operatorId(message.getOperatorId())
-                .timestamp(timestampToInstant(message.getTimestamp()))
-                .reason(data.getReason())
+                .eventId(eventData.getEventId())
+                .accountId(eventData.getAccountId())
+                .operatorId(eventData.getOperatorId())
+                .timestamp(Instant.parse(eventData.getTimestamp()))
+                .reason(eventData.getReason())
                 .build();
     }
 
-    private AccountUnfrozenEvent createAccountUnfrozenEvent(EventMessage message) {
-        AccountUnfrozenEventData data = message.getAccountUnfrozen();
+    private AccountUnfrozenEvent buildAccountUnfrozenEvent(AccountUnfrozenEventData eventData) {
         return AccountUnfrozenEvent.builder()
-                .eventId(message.getEventId())
-                .accountId(message.getAccountId())
-                .operatorId(message.getOperatorId())
-                .timestamp(timestampToInstant(message.getTimestamp()))
-                .reason(data.getReason())
+                .eventId(eventData.getEventId())
+                .accountId(eventData.getAccountId())
+                .operatorId(eventData.getOperatorId())
+                .timestamp(Instant.parse(eventData.getTimestamp()))
+                .reason(eventData.getReason())
                 .build();
     }
 
-    private AccountClosedEvent createAccountClosedEvent(EventMessage message) {
-        AccountClosedEventData data = message.getAccountClosed();
+    private AccountClosedEvent buildAccountClosedEvent(AccountClosedEventData eventData) {
         return AccountClosedEvent.builder()
-                .eventId(message.getEventId())
-                .accountId(message.getAccountId())
-                .operatorId(message.getOperatorId())
-                .timestamp(timestampToInstant(message.getTimestamp()))
-                .reason(data.getReason())
+                .eventId(eventData.getEventId())
+                .accountId(eventData.getAccountId())
+                .operatorId(eventData.getOperatorId())
+                .timestamp(Instant.parse(eventData.getTimestamp()))
+                .reason(eventData.getReason())
+                .finalBalance(new BigDecimal(eventData.getFinalBalance()))
                 .build();
-    }
-
-    private Timestamp instantToTimestamp(Instant instant) {
-        return Timestamp.newBuilder()
-                .setSeconds(instant.getEpochSecond())
-                .setNanos(instant.getNano())
-                .build();
-    }
-
-    private Instant timestampToInstant(Timestamp timestamp) {
-        return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
     }
 }

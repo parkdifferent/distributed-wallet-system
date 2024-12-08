@@ -1,7 +1,7 @@
-package com.wallet.command.mapper;
+package com.wallet.query.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wallet.command.entity.AccountEntity;
+import com.wallet.query.entity.AccountEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
