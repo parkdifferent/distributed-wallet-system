@@ -32,7 +32,8 @@
         <prometheus.version>1.9.10</prometheus.version>
         <ratis.version>2.4.1</ratis.version>
         <redisson.version>3.17.7</redisson.version>
-        <postgresql.version>42.3.8</postgresql.version>
+        <mysql.version>5.1.49</mysql.version>
+        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <lombok.version>1.18.24</lombok.version>
         <jackson.version>2.13.5</jackson.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
@@ -109,6 +110,20 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
             <version>${redisson.version}</version>
+        </dependency>
+
+        <!-- Database -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+
+        <!-- MyBatis Plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
 
         <!-- Utils -->
