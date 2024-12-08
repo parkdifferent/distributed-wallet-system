@@ -6,10 +6,12 @@ import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+@Component
 @RequiredArgsConstructor
 public class MetricsInterceptor implements ServerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(MetricsInterceptor.class);
