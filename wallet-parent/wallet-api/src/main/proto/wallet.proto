@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.wallet.api.grpc";
+option java_outer_classname = "WalletProto";
+
+package wallet;
+
+// Error codes for wallet operations
+enum ErrorCode {
+    UNKNOWN_ERROR = 0;
+    INVALID_REQUEST = 1;
+    ACCOUNT_NOT_FOUND = 2;
+    INSUFFICIENT_BALANCE = 3;
+    VERSION_MISMATCH = 4;
+    ACCOUNT_FROZEN = 5;
+    INVALID_AMOUNT = 6;
+    ASSET_TYPE_MISMATCH = 7;
+    DUPLICATE_REQUEST = 8;
+    BALANCE_LIMIT_EXCEEDED = 9;
+}
+
+// Account management service
+service WalletCommandService {
+    // Create a new account
+    rpc CreateAccount (CreateAccountRequest) returns (CreateAccountResponse) {}
+    
+    // Change account balance
+    rpc ChangeBalance (ChangeBalanceRequest) returns (ChangeBalanceResponse) {}
+    
+    // Freeze account
+    rpc FreezeAccount (FreezeAccountRequest) returns (FreezeAccountResponse) {}
+    
+    // Unfreeze account
+    rpc UnfreezeAccount (UnfreezeAccountRequest) returns (UnfreezeAccountResponse) {}
+    
+    // Transfer between accounts
+    rpc Transfer (TransferRequest) returns (TransferResponse) {}
+}
+
+// Request/Response messages
+message CreateAccountRequest {
+    string account_id = 1;
+    string asset_type = 2;
+    string initial_balance = 3;
+    string min_balance = 4;
+    string max_balance = 5;
+    string dedup_id = 6;
+    string operator_id = 7;
+}
+
+message CreateAccountResponse {
+    bool success = 1;
+    string error_message = 2;
+    ErrorCode error_code = 3;
+    string account_id = 4;
+}
+
+message ChangeBalanceRequest {
+    string account_id = 1;
+    string amount = 2;
+    string dedup_id = 3;
+    string operator_id = 4;
+}
+
+message ChangeBalanceResponse {
+    bool success = 1;
+    string error_message = 2;
+    ErrorCode error_code = 3;
+}
+
+message FreezeAccountRequest {
+    string account_id = 1;
+    string reason = 2;
+    string operator_id = 3;
+}
+
+message FreezeAccountResponse {
+    bool success = 1;
+    string error_message = 2;
+    ErrorCode error_code = 3;
+}
+
+message UnfreezeAccountRequest {
+    string account_id = 1;
+    string reason = 2;
+    string operator_id = 3;
+}
+
+message UnfreezeAccountResponse {
+    bool success = 1;
+    string error_message = 2;
+    ErrorCode error_code = 3;
+}
+
+message TransferRequest {
+    string from_account_id = 1;
+    string to_account_id = 2;
+    string amount = 3;
+    string dedup_id = 4;
+    string operator_id = 5;
+}
+
+message TransferResponse {
+    bool success = 1;
+    string error_message = 2;
+    ErrorCode error_code = 3;
+}

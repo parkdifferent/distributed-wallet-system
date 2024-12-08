@@ -1,0 +1,84 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: wallet-command
+    
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      client-id: wallet-command
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      compression-type: snappy
+      properties:
+        linger.ms: 1
+        retry.backoff.ms: 1000
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 60000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1
+      
+grpc:
+  server:
+    port: 9090
+    security:
+      enabled: false
+    shutdown-grace-period: 30
+    max-inbound-message-size: 4194304
+    max-inbound-metadata-size: 8192
+    
+rocksdb:
+  data-dir: ${ROCKSDB_DATA_DIR:data/rocksdb}
+  max-open-files: 1000
+  block-size: 4096
+  write-buffer-size: 64MB
+  max-write-buffer-number: 3
+  
+raft:
+  server:
+    id: ${RAFT_SERVER_ID:1}
+    port: ${RAFT_SERVER_PORT:6001}
+  cluster:
+    nodes: ${RAFT_CLUSTER_NODES:localhost:6001,localhost:6002,localhost:6003}
+    
+logging:
+  level:
+    com.wallet: DEBUG
+    org.springframework: INFO
+    
+metrics:
+  prometheus:
+    enabled: true
+    step: 1m
+    export:
+      enabled: true
+      step: 1m
+      descriptions: true
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true

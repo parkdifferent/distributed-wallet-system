@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package com.wallet.command.event.proto;
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+
+// Common event message wrapper
+message EventMessage {
+    string event_id = 1;
+    string account_id = 2;  // Renamed from aggregate_id
+    string operator_id = 3;
+    google.protobuf.Timestamp timestamp = 4;
+    
+    oneof event_data {
+        AccountCreatedEventData account_created = 5;
+        BalanceChangedEventData balance_changed = 6;
+        AccountFrozenEventData account_frozen = 7;
+        AccountUnfrozenEventData account_unfrozen = 8;
+        TransferInitiatedEventData transfer_initiated = 9;
+        TransferCompletedEventData transfer_completed = 10;
+        TransferFailedEventData transfer_failed = 11;
+        AccountClosedEventData account_closed = 12;
+    }
+}
+
+// Event list wrapper
+message EventList {
+    repeated EventMessage events = 1;
+}
+
+// Account Created Event
+message AccountCreatedEventData {
+    string asset_type = 1;  // FIAT, CRYPTO, COMMODITY
+    string initial_balance = 2;  // Using string for BigDecimal
+    string min_balance = 3;
+    string max_balance = 4;
+}
+
+// Balance Changed Event
+message BalanceChangedEventData {
+    string amount = 1;
+    string transaction_id = 2;
+    string transaction_type = 3;  // CREDIT, DEBIT
+    string target_account_id = 4;  // Optional, for transfers
+}
+
+// Account Frozen Event
+message AccountFrozenEventData {
+    string reason = 1;
+}
+
+// Account Unfrozen Event
+message AccountUnfrozenEventData {
+    string reason = 1;
+}
+
+// Transfer Initiated Event
+message TransferInitiatedEventData {
+    string source_account_id = 1;
+    string target_account_id = 2;
+    string amount = 3;
+    string transaction_id = 4;
+}
+
+// Transfer Completed Event
+message TransferCompletedEventData {
+    string source_account_id = 1;
+    string target_account_id = 2;
+    string amount = 3;
+    string transaction_id = 4;
+}
+
+// Transfer Failed Event
+message TransferFailedEventData {
+    string source_account_id = 1;
+    string target_account_id = 2;
+    string amount = 3;
+    string transaction_id = 4;
+    string failure_reason = 5;
+}
+
+// Account Closed Event
+message AccountClosedEventData {
+    string reason = 1;
+    string final_balance = 2;
+}
