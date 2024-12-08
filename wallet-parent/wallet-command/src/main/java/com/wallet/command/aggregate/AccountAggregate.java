@@ -73,16 +73,47 @@ public class AccountAggregate extends AggregateRoot {
         this.status = AccountStatus.CLOSED;
     }
 
+    /**
+     * Validates if a balance change operation can be performed
+     * @param amount The amount to change
+     * @return true if the operation is valid
+     */
     public boolean canChangeBalance(BigDecimal amount) {
         if (!isActive()) {
-            return false;
+            throw new IllegalStateException("Account is not active");
         }
         BigDecimal newBalance = this.balance.add(amount);
-        return newBalance.compareTo(minBalance) >= 0 && newBalance.compareTo(maxBalance) <= 0;
+        if (newBalance.compareTo(minBalance) < 0) {
+            throw new IllegalStateException("Balance would fall below minimum: " + minBalance);
+        }
+        if (newBalance.compareTo(maxBalance) > 0) {
+            throw new IllegalStateException("Balance would exceed maximum: " + maxBalance);
+        }
+        return true;
     }
 
-    public boolean canTransfer(BigDecimal amount) {
-        return isActive() && canChangeBalance(amount.negate());
+    /**
+     * Validates if a transfer operation can be performed
+     * @param target The target account
+     * @param amount The amount to transfer
+     * @return true if the transfer is valid
+     */
+    public boolean canTransfer(AccountAggregate target, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be positive");
+        }
+        if (target == null) {
+            throw new IllegalArgumentException("Target account cannot be null");
+        }
+        if (!target.isActive()) {
+            throw new IllegalStateException("Target account is not active");
+        }
+        if (target.assetType != this.assetType) {
+            throw new IllegalStateException("Cannot transfer between different asset types");
+        }
+        canChangeBalance(amount.negate());
+        target.canChangeBalance(amount);
+        return true;
     }
 
     public boolean isActive() {
